@@ -94,7 +94,7 @@
     window.addEventListener("deviceorientation", function(event) { 
 //       alert(event.gamma);
 //       path.strokeWidth = 50;
-      if ((event.gamma > 30) || (event.gamma < -30)) {
+      if (event.gamma > 50) {
         path.strokeColor = randomColor();
       }
     });
