@@ -25,7 +25,7 @@ SECRET_KEY = '*6t50m_p^gif@4sz!590)u_!#9c-u8l9+7-v+*_op=v^#7wkv9'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['p3-websockets-jwu7082-jwu7082387298.codeanyapp.com', '0.0.0.0', '127.0.0.1']
 
 
 # Application definition
