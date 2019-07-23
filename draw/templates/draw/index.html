@@ -2,35 +2,93 @@
 
 <!DOCTYPE html>
 <html>
+
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>P4 Drawing</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>P4 Drawing</title>
 
-    <link rel="stylesheet" type="text/css" href="{% static 'draw/vendor/bootstrap/css/bootstrap.min.css' %}">
-    <script type="text/javascript" src="{% static 'draw/vendor/jquery/jquery-3.3.1.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'draw/vendor/paper/paper-full.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'draw/vendor/bootstrap/css/bootstrap.min.css' %}">
+  <script type="text/javascript" src="{% static 'draw/vendor/jquery/jquery-3.3.1.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'draw/vendor/paper/paper-full.min.js' %}"></script>
 
-    <style type="text/css">
-    </style>
+  <style type="text/css">
+    canvas {
+      border: 2px solid skyblue;
+    }
+  </style>
 
 </head>
+
 <body>
-    <!-- You may change the dimensions of this canvas -->
-    <canvas id="myCanvas" width="750px" height="750px"></canvas>
+  <!-- You may change the dimensions of this canvas -->
+  <canvas id="myCanvas" width="750px" height="750px"></canvas>
 </body>
 <script>
+  // setting up the canvas and one paper tool
+  var canvas = document.getElementById('myCanvas');
+  paper.setup(canvas);
+  var tool = new paper.Tool();
 
-    // setting up the canvas and one paper tool
-    var canvas = document.getElementById('myCanvas');
-    paper.setup(canvas);
-    var tool = new paper.Tool();
+  // getting the URL (you may want to use for Exercise 3)
+  var url = window.location.href;
 
-    // getting the URL (you may want to use for Exercise 3)
-    var url = window.location.href;
+  // http://paperjs.org/reference/tool/
+  path = new paper.Path();
+  path.strokeWidth = 1.6;
+  var strokeColor = randomColor();
+  path.strokeColor = strokeColor;
+  // https://pietschsoft.com/post/2015/09/05/javascript-basics-how-to-create-a-dictionary-with-keyvalue-pairs
+  idMap = {};
+  var id = randomNumber();
+  
+  tool.onMouseMove = function(event) {
+    var obj = {
+      color: strokeColor,
+      x: event.point.x,
+      y: event.point.y,
+      id: id
+    };
+    socket.send(JSON.stringify(obj)); // send message to server
+    path.strokeColor = strokeColor;
+    path.add(event.point);
+  }
 
-    // var socket = new WebSocket(
-    //     'wss://<your url here>/ws/draw');
 
+  // create new websocket connecting to server 
+  var socket = new WebSocket(
+    'wss://p3-websockets-jwu7082-jwu7082387298.codeanyapp.com/ws/draw');
+  // receive message from server
+  socket.onmessage = function(receivedMessage) {
+//     alert(`[message] Data received: ${event.data} <- server`);
+    if (url.indexOf("?size=large") >= 0) { // only if large display
+        var obj = JSON.parse(receivedMessage.data);
+        var x = obj.x,
+            y = obj.y,
+            color = obj.color,
+            id = obj.id.toString();
+        console.log(id);
+        if (!(id in idMap)) {
+          idMap[id] = new paper.Path();
+        }
+        idMap[id].add(new paper.Point(x, y)); 
+        idMap[id].strokeColor = color;
+        idMap[id].strokeWidth = 1.6;
+    }
+  };
 
+  // notify console if socket closes unexpectedly
+  socket.onclose = function(e) {
+    console.error('Chat socket closed unexpectedly');
+  };
+  
+  // https://stackoverflow.com/questions/1484506/random-color-generator
+  function randomColor() {
+    return '#'+Math.random().toString(16).substr(-6);
+  }
+  // http://www.javascriptkit.com/javatutors/randomnum.shtml
+  function randomNumber() {
+    return Math.floor(Math.random()*11);
+  }
 </script>
+
 </html>
