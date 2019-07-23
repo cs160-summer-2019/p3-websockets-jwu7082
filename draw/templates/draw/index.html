@@ -89,6 +89,25 @@
   function randomNumber() {
     return Math.floor(Math.random()*11);
   }
+  
+  $(document).ready(function() {
+    window.addEventListener("deviceorientation", function(event) { 
+//       alert(event.gamma);
+//       path.strokeWidth = 50;
+      if ((event.gamma > 30) || (event.gamma < -30)) {
+        path.strokeColor = randomColor();
+      }
+    });
+    
+    window.addEventListener("devicemotion", (event) => {
+      if ((Math.abs(event.acceleration.x > 20)) || Math.abs((event.acceleration.y > 20)) || Math.abs((event.acceleration.z > 20))) {
+        // https://stackoverflow.com/questions/19054798/canvas-clear-in-paper-js
+        // paper.project.clear(); 
+        // ISSUE: can't draw on canvas again? 
+        paper.project.activeLayer.removeChildren();
+      }
+    });
+  });
 </script>
 
 </html>
