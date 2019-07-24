@@ -14,16 +14,17 @@
   <style type="text/css">
     canvas {
       border: 2px solid skyblue;
-      width: 1063px;
-      height: 2048px;
+/*       width: 1063px; */
+      width: 850px;
+/*       height: 2048px; */
+      height: 1638px;
       display: block;
       margin: 10% auto 0 auto;
-      background-image: url("{%static 'draw/images/img.jpg'%}");
-      overflow: auto;
+      background-image: url("{%static 'draw/images/img2.jpg'%}");
     }
     
     #myCanvas { 
-        z-index: 10;
+        z-index: 5;
     }
     
     .sticky-nav {
@@ -42,6 +43,24 @@
       .sticky-nav li {
         color: white;
       }
+    
+    .sticky-note {
+      position: absolute;
+      top: 30;
+      z-index: 10;
+      padding: 20px 40px;
+      background-color: red;
+    }
+    
+    #sticky-note-header {
+      background-color: skyblue;
+      cursor: move;
+    }
+    
+    textarea {
+      height: 200px;
+      width: 300px;
+    }
   </style>
 
 </head>
@@ -53,6 +72,10 @@
     <li>edit</li>
     <li>edit2</li>
   </div>
+  <div class="sticky-note" id="sticky-note">
+    <div id="sticky-note-header">Sticky Note</div>
+     <textarea name="note" placeholder="Note"></textarea>
+  </div>
 </body>
 <script>
   // setting up the canvas and one paper tool
@@ -62,6 +85,9 @@
 
   // getting the URL (you may want to use for Exercise 3)
   var url = window.location.href;
+  if (url.indexOf("?size=small") < 0) {
+    
+  }
 
   path = new paper.Path();
   path.strokeWidth = 4;
@@ -78,7 +104,8 @@
     var obj = {
       x: event.point.x,
       y: event.point.y,
-      id: id
+      id: id,
+      newPath: true
     }
     socket.send(JSON.stringify(obj));
   }
@@ -88,7 +115,8 @@
       color: strokeColor,
       x: event.point.x,
       y: event.point.y,
-      id: id
+      id: id,
+      newPath: false
     };
     socket.send(JSON.stringify(obj)); // send message to server
     path.strokeColor = strokeColor;
@@ -102,14 +130,13 @@
   // receive message from server
   socket.onmessage = function(receivedMessage) {
     var currId = id; 
-    
         var obj = JSON.parse(receivedMessage.data);
         var x = obj.x,
             y = obj.y,
             color = obj.color,
-            id = obj.id.toString();
-        console.log(id);
-        if (!(id in idMap)) {
+            id = obj.id.toString(),
+            newPath = obj.newPath;
+        if (!(id in idMap) || (newPath)) {
           idMap[id] = new paper.Path();
         }
         idMap[id].add(new paper.Point(x, y)); 
@@ -132,6 +159,54 @@
   // http://www.javascriptkit.com/javatutors/randomnum.shtml
   function randomNumber() {
     return Math.floor(Math.random()*11);
+  }
+  
+  
+  
+  // DRAG
+  // https://www.w3schools.com/howto/howto_js_draggable.asp
+  // Make the DIV element draggable:
+  dragElement(document.getElementById("sticky-note"));
+
+  function dragElement(elmnt) {
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    if (document.getElementById(elmnt.id + "-header")) {
+      // if present, the header is where you move the DIV from:
+      document.getElementById(elmnt.id + "-header").onmousedown = dragMouseDown;
+    } else {
+      // otherwise, move the DIV from anywhere inside the DIV: 
+      elmnt.onmousedown = dragMouseDown;
+    }
+
+    function dragMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // get the mouse cursor position at startup:
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      // call a function whenever the cursor moves:
+      document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // calculate the new cursor position:
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      // set the element's new position:
+      elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+      elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
+
+    function closeDragElement() {
+      // stop moving when mouse button is released:
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
   }
 </script>
 
