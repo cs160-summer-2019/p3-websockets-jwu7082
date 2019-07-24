@@ -14,14 +14,41 @@
   <style type="text/css">
     canvas {
       border: 2px solid skyblue;
+      width: 1063px;
+      height: 2048px;
+      display: block;
+      margin: 10% auto 0 auto;
+      background-image: url("{%static 'draw/images/img.jpg'%}");
+      overflow: auto;
     }
+    
+    #myCanvas { 
+        z-index: 10;
+    }
+    
+    .sticky-nav {
+        background-image: linear-gradient(to bottom left, rgba(0, 0, 0, 1), rgba(0, 0, 0, .8));
+        width: 100%;
+        height: 10%;
+        top: 0;
+        text-decoration: none;
+        list-style: none;
+        text-transform: uppercase;
+        display: inline-block;
+        z-index: 4;
+        position: fixed; 
+      }
+      
+      .sticky-nav li {
+        color: white;
+      }
   </style>
 
 </head>
 
 <body>
   <!-- You may change the dimensions of this canvas -->
-  <canvas id="myCanvas" width="750px" height="750px"></canvas>
+  <canvas id="myCanvas"></canvas>
 </body>
 <script>
   // setting up the canvas and one paper tool
@@ -32,12 +59,10 @@
   // getting the URL (you may want to use for Exercise 3)
   var url = window.location.href;
 
-  // http://paperjs.org/reference/tool/
   path = new paper.Path();
-  path.strokeWidth = 1.6;
+  path.strokeWidth = 4;
   var strokeColor = randomColor();
   path.strokeColor = strokeColor;
-  // https://pietschsoft.com/post/2015/09/05/javascript-basics-how-to-create-a-dictionary-with-keyvalue-pairs
   idMap = {};
   var id = randomNumber();
   
@@ -59,8 +84,6 @@
     'wss://p3-websockets-jwu7082-jwu7082387298.codeanyapp.com/ws/draw');
   // receive message from server
   socket.onmessage = function(receivedMessage) {
-//     alert(`[message] Data received: ${event.data} <- server`);
-    if (url.indexOf("?size=large") >= 0) { // only if large display
         var obj = JSON.parse(receivedMessage.data);
         var x = obj.x,
             y = obj.y,
@@ -72,8 +95,8 @@
         }
         idMap[id].add(new paper.Point(x, y)); 
         idMap[id].strokeColor = color;
-        idMap[id].strokeWidth = 1.6;
-    }
+        idMap[id].strokeWidth = 4;
+    
   };
 
   // notify console if socket closes unexpectedly
@@ -89,25 +112,6 @@
   function randomNumber() {
     return Math.floor(Math.random()*11);
   }
-  
-  $(document).ready(function() {
-    window.addEventListener("deviceorientation", function(event) { 
-//       alert(event.gamma);
-//       path.strokeWidth = 50;
-      if (event.gamma > 50) {
-        path.strokeColor = randomColor();
-      }
-    });
-    
-    window.addEventListener("devicemotion", (event) => {
-      if ((Math.abs(event.acceleration.x > 20)) || Math.abs((event.acceleration.y > 20)) || Math.abs((event.acceleration.z > 20))) {
-        // https://stackoverflow.com/questions/19054798/canvas-clear-in-paper-js
-        // paper.project.clear(); 
-        // ISSUE: can't draw on canvas again? 
-        paper.project.activeLayer.removeChildren();
-      }
-    });
-  });
 </script>
 
 </html>
