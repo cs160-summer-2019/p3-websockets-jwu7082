@@ -49,6 +49,10 @@
 <body>
   <!-- You may change the dimensions of this canvas -->
   <canvas id="myCanvas"></canvas>
+  <div class="sticky-nav">
+    <li>edit</li>
+    <li>edit2</li>
+  </div>
 </body>
 <script>
   // setting up the canvas and one paper tool
@@ -66,7 +70,20 @@
   idMap = {};
   var id = randomNumber();
   
-  tool.onMouseMove = function(event) {
+  
+  tool.onMouseDown = function(event) {
+    id = randomNumber();
+    idMap[id] = new paper.Path();
+    idMap[id].add(event.point);
+    var obj = {
+      x: event.point.x,
+      y: event.point.y,
+      id: id
+    }
+    socket.send(JSON.stringify(obj));
+  }
+  
+  tool.onMouseDrag = function(event) {
     var obj = {
       color: strokeColor,
       x: event.point.x,
@@ -84,6 +101,8 @@
     'wss://p3-websockets-jwu7082-jwu7082387298.codeanyapp.com/ws/draw');
   // receive message from server
   socket.onmessage = function(receivedMessage) {
+    var currId = id; 
+    
         var obj = JSON.parse(receivedMessage.data);
         var x = obj.x,
             y = obj.y,
@@ -96,6 +115,8 @@
         idMap[id].add(new paper.Point(x, y)); 
         idMap[id].strokeColor = color;
         idMap[id].strokeWidth = 4;
+    
+    path = idMap[currId];
     
   };
 
