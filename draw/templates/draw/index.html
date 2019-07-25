@@ -142,13 +142,11 @@
   paper.setup(canvas);
   var tool = new paper.Tool();
 
-  // getting the URL (you may want to use for Exercise 3)
+  // getting the URL 
   var url = window.location.href;
-//   if (url.indexOf("?size=small") < 0) {
-// TODO
-//   }
 
-  var id = randomId();
+  var userId = randomId();
+  var id = randomId(); // pathId
   var strokeColor = randomColor();
   paths = {};
   path = new paper.Path();
@@ -184,8 +182,9 @@
       id: id,
       newPath: true,
       message: false,
-      messageContent: ''
-    }
+      messageContent: '',
+      senderId: userId
+    };
     socket.send(JSON.stringify(obj));
   }
   
@@ -197,7 +196,8 @@
       id: id,
       newPath: false,
       message: false,
-      messageContent: ''
+      messageContent: '',
+      senderId: userId
     };
     socket.send(JSON.stringify(obj)); // send message to server
 //     path.strokeColor = strokeColor;
@@ -211,7 +211,7 @@
   
   // receive message from server
   socket.onmessage = function(receivedMessage) {
-    var currId = id; 
+    var currId = id; // save current pathId
     
     // Take care of message. Message will EITHER contain sticky note contents OR a new point to add to a specified path. 
     var obj = JSON.parse(receivedMessage.data);
@@ -221,13 +221,13 @@
         id = obj.id.toString(),
         newPath = obj.newPath,
         message = obj.message,
-        messageContent = obj.messageContent;
+        messageContent = obj.messageContent,
+        senderId = obj.senderId;
     
-    
-    if (url.indexOf("?size=small") >= 0) {
-      // TODO: if small screen, check ID before proceeding to add sticky note/path. 
-      // Might need a map of users to IDs? ... 
-      // Users should only view their own content, so need to filter by ID.
+    if (url.indexOf("?size=small") >= 0) { // if individual screen, proceed only if senderId === userId.
+      if (senderId !== userId) {
+        return;
+      }
     }
     
     // if receiving a sticky note message, as indicated by the 'message' boolean variable,
@@ -280,7 +280,6 @@
   function createStickyAndSend() {
     var messageContent = $('textarea').val();
     document.getElementById('textarea').value = '';
-    // TODO: Clear textarea and hide popup
       var obj = {
         color: strokeColor,
         x: 0,
@@ -288,7 +287,8 @@
         id: id,
         newPath: false,
         message: true,
-        messageContent: messageContent
+        messageContent: messageContent,
+        senderId: userId
       };
     socket.send(JSON.stringify(obj)); 
     // when message is received, a sticky will be created on all screens
