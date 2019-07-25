@@ -259,6 +259,8 @@
 
         // Make sticky note draggable.
         dragElement(document.getElementById(stickyId));
+        dragElementMobile(document.getElementById(stickyId), document.getElementById(stickyId));
+        dragElementMobile(document.getElementById(stickyHeaderId), document.getElementById(stickyId));
         return;
      }
     
@@ -346,6 +348,8 @@
   // https://www.w3schools.com/howto/howto_js_draggable.asp
   // Make the DIV element draggable:
   dragElement(document.getElementById("sticky-create"));
+  dragElementMobile(document.getElementById("sticky-create"), document.getElementById("sticky-create"));
+  dragElementMobile(document.getElementById("sticky-create-header"), document.getElementById("sticky-create"));
   
   function dragElement(elmnt) {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -385,6 +389,72 @@
       // stop moving when mouse button is released:
       document.onmouseup = null;
       document.onmousemove = null;
+    }
+  }
+  
+  // https://www.kirupa.com/html5/drag.htm
+  // MOBILE DRAG 
+  function dragElementMobile(dragItem, container) {
+    var active = false;
+    var currentX;
+    var currentY;
+    var initialX;
+    var initialY;
+    var xOffset = 0;
+    var yOffset = 0;
+
+    container.addEventListener("touchstart", dragStart, false);
+    container.addEventListener("touchend", dragEnd, false);
+    container.addEventListener("touchmove", drag, false);
+
+    container.addEventListener("mousedown", dragStart, false);
+    container.addEventListener("mouseup", dragEnd, false);
+    container.addEventListener("mousemove", drag, false);
+
+    function dragStart(e) {
+      if (e.type === "touchstart") {
+        initialX = e.touches[0].clientX - xOffset;
+        initialY = e.touches[0].clientY - yOffset;
+      } else {
+        initialX = e.clientX - xOffset;
+        initialY = e.clientY - yOffset;
+      }
+
+      if (e.target === dragItem) {
+        active = true;
+      }
+    }
+
+    function dragEnd(e) {
+      initialX = currentX;
+      initialY = currentY;
+
+      active = false;
+    }
+
+    function drag(e) {
+      if (active) {
+      
+        e.preventDefault();
+      
+        if (e.type === "touchmove") {
+          currentX = e.touches[0].clientX - initialX;
+          currentY = e.touches[0].clientY - initialY;
+        } else {
+          currentX = e.clientX - initialX;
+          currentY = e.clientY - initialY;
+        }
+
+        xOffset = currentX;
+        yOffset = currentY;
+
+        setTranslate(currentX, currentY, container); 
+        // changed from dragItem to container because we don't want the header to move by itself when dragged
+      }
+    }
+
+    function setTranslate(xPos, yPos, el) {
+      el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
     }
   }
 </script>
