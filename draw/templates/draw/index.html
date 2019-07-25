@@ -14,9 +14,7 @@
   <style type="text/css">
     canvas {
       border: 2px solid black;
-/*       width: 1063px; */
-      width: 850px;
-/*       height: 2048px; */
+      width: 850px; /* If adding other images, use jquery to adjust width/height to image dimensions. */
       height: 1638px;
       display: block;
       margin: 10% auto 0 auto;
@@ -80,6 +78,7 @@
       font-size: 50px;
     }
     
+    
     textarea {
       height: 200px;
       width: 300px;
@@ -102,14 +101,22 @@
     <!-- TODO: Style navbar -->
   </div>
   
-  <div class="stickies">
+  <div id="stickies">
     <!-- For individual users, this is where stickies will be added. 
          For the large display, all stickies from all users will be added. -->
+    
+    <div class="sticky-note" id="sticky-note23424">
+      <div class="sticky-note-header" id="sticky-note23424-header">
+      </div>
+      tmp sticky
+    </div>
+    <!-- change bg color of sticky note and header -->
+    
   </div>
  
   
   <div class="sticky-create" id="sticky-create">
-    <div id="sticky-create-header" class="sticky-create-header">Sticky Note</div>
+    <div id="sticky-create-header" class="sticky-create-header">Add Sticky Note</div>
     <ion-icon class="sticky-send" name="send" onclick="createStickyAndSend()"></ion-icon> <!-- Send textarea val to websocket -->
     <textarea id="textarea" name="note" placeholder="Note"></textarea>
   </div>
@@ -186,7 +193,7 @@
   socket.onmessage = function(receivedMessage) {
     var currId = id; 
     
-    // Take care of message 
+    // Take care of message. Message will EITHER contain sticky note contents OR a new point to add to a specified path. 
         var obj = JSON.parse(receivedMessage.data);
         var x = obj.x,
             y = obj.y,
@@ -196,20 +203,32 @@
             message = obj.message,
             messageContent = obj.messageContent;
     
-      // if websocket message is from sticky note (not path), as indicated by the 'message' boolean variable,
-      // create a sticky containing the messageContent in the specified color and ID
+      // if receiving a sticky note message, as indicated by the 'message' boolean variable,
+      // create a sticky containing the messageContent with the specified color and ID
       if (message) {
+        alert('Sticky received: ' + messageContent);
         var stickyId = "sticky-note".concat(id);
         var stickyHeaderId = stickyId.concat("-header");
-       
-        // TODO: construct sticky note here with the specified ids and messageContent. Use HTML. Add below:
-        // document.getElementById(stickies).innerHTML = "<div class='sticky-note' id='" + stickyId + "' + "> </div>"
         
         
-        dragElement(stickyId);
-        alert('Sticky received: ' + messageContent); // TODO remove 
+        /* https://stackoverflow.com/questions/595808/is-it-possible-to-append-to-innerhtml-without-destroying-descendants-event-list
+         * The code below only adds one child to the 'stickies' div and replaces that child every time a new one is added.
+         * 
+         * document.getElementById('stickies').innerHTML = "<div class='sticky-note' id='" + stickyId + "'>" 
+         *    + "<div class='sticky-note-header' id='" + stickyHeaderId + "'>Sticky Note</div>"
+         *    + messageContent + "</div>"; 
+         */
+        var stickies = document.getElementById('stickies');
+        var sticky = document.createElement('div');
+        sticky.innerHTML = "<div class='sticky-note' id='" + stickyId + "'>" + "<div class='sticky-note-header' id='" + stickyHeaderId + "'>Sticky Note</div>";
+        while (sticky.firstChild) {
+          stickies.append(sticky.firstChild);
+        }
+        
+        dragElement(stickyId); // make new sticky element draggable
         return;
       }
+    
       // Else, if adding a new path or point to a path:
         if (!(id in paths) || (newPath)) {
           paths[id] = new paper.Path();
@@ -255,6 +274,10 @@
   socket.onclose = function(e) {
     console.error('Chat socket closed unexpectedly');
   };
+  
+  
+  
+  /* ====================================================================== */
   
   
   // https://stackoverflow.com/questions/1484506/random-color-generator
