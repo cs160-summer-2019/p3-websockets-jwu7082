@@ -1,3 +1,6 @@
 django
 gunicorn
 django-heroku
+websockets 
+channels
+channels_redis
