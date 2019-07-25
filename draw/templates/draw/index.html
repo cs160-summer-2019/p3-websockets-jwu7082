@@ -17,7 +17,7 @@
       width: 850px; /* If adding other images, use jquery to adjust width/height to image dimensions. */
       height: 1638px;
       display: block;
-      margin: 10% auto 0 auto;
+      margin: 150px auto;
       background-image: url("{%static 'draw/images/img2.jpg'%}");
       margin-bottom: 10%;
     }
@@ -30,7 +30,7 @@
     .nav {
         background-image: linear-gradient(to bottom left, rgba(0, 0, 0, 1), rgba(0, 0, 0, .8));
         width: 100%;
-        height: 10%;
+        height: 100px;
         top: 0;
         text-decoration: none;
         list-style: none;
@@ -40,9 +40,9 @@
         position: fixed; 
       }
       
-    .nav li {
+/*     .nav li {
         color: white;
-      }
+      } */
     
      /* STICKY NOTE + STICKY NOTE ADDER */
     .sticky-create,
@@ -90,11 +90,28 @@
       transform: rotate(20deg) scale(1.2);
     }
     
-    #sticky-button {
-      font-size: 60px;
-      position: absolute;
-      right: 280px;
-      top: 170px;
+    #home-button,
+    #sticky-button,
+    #marker-button {
+      font-size: 75px;
+      color: white;
+      margin: auto 20px;
+      display: inline-block;
+/*       background-color: red; */
+    }
+    
+    #marker-button {
+      font-size: 69px;
+    }
+    
+    .row {
+      text-align: center;
+    }
+    
+    .col {
+/*       background-color: red; */
+      margin: 13px 10px 10px 10px;
+      
     }
     
     /* TEXTBOX */
@@ -116,9 +133,17 @@
   <!-- You may change the dimensions of this canvas -->
   <canvas id="myCanvas"></canvas>
   <div class="nav">
-    <li>edit</li>
-    <li>edit2</li>
-    <!-- TODO: Style navbar -->
+    <div class="row">
+      <div class="col">
+        <ion-icon id="home-button" name="home"></ion-icon>
+      </div>
+      <div class="col">
+         <ion-icon id="marker-button" name="brush"></ion-icon>
+      </div>
+      <div class="col">
+        <ion-icon id="sticky-button" name="list-box" onclick="hideOrExpand()">
+      </div>
+    </div>
   </div>
   
   <div id="stickies">
@@ -133,7 +158,6 @@
     <textarea id="textarea" name="note" placeholder="Note"></textarea>
   </div>
   <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
-  <ion-icon id="sticky-button" name="list-box" onclick="hideOrExpand()"></ion-icon>
 </body>
   
 <script>
@@ -153,16 +177,28 @@
   path.strokeColor = strokeColor;
   path.strokeWidth = 4;
   
+  
+  // BUTTON COLORS 
   $('.sticky-create').css('background-color', strokeColor);
   $('.sticky-create-header').css('background-color', strokeColor);
+  
   // https://stackoverflow.com/questions/21051440/how-to-define-the-css-hover-state-in-a-jquery-selector
   // https://forum.jquery.com/topic/what-is-the-opposite-of-hover
+  $('#home-button').mouseenter(function() {
+    $(this).css('color', strokeColor)
+  });
+  $('#home-button').mouseleave(function() {
+    $(this).css('color', 'white')
+  });
+  
   $('#sticky-send').mouseenter(function() {
     $(this).css('color', strokeColor)
   });
   $('#sticky-send').mouseleave(function() {
     $(this).css('color', 'black')
   });
+  
+  
   
   tool.onMouseDown = function(event) {
     id = randomId();
@@ -311,7 +347,7 @@
     // check if active, else make active and change color
     if (popup) {
       document.getElementById("sticky-create").style.opacity = 0;
-      document.getElementById("sticky-button").style.color = 'black';
+      document.getElementById("sticky-button").style.color = 'white';
       popup = false;
     } else {
       document.getElementById("sticky-create").style.opacity = 1;
