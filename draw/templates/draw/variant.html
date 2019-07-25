@@ -139,7 +139,7 @@
         <ion-icon id="home-button" name="home"></ion-icon>
       </div>
       <div class="col">
-         <ion-icon id="marker-button" name="brush"></ion-icon>
+         <ion-icon id="marker-button" name="brush" onclick="enableOrDisableMarker()"></ion-icon>
       </div>
       <div class="col">
         <ion-icon id="sticky-button" name="list-box" onclick="hideOrExpand()">
@@ -203,15 +203,6 @@
   
   tool.onMouseDown = function(event) {
     id = randomId();
-    // alert(id);
-    
-    /* Unneeded code. See "socket.onmessage" function. 
-       The "socket.onmessage" function creates paths/adds points to paths on the message receiver's screen. 
-       However, ALL connections to the websocket, INCLUDING the sender, receive the sent message.
-       The code below thus indicates we are double-creating the path on the same screen. */
-    //     paths[id] = new paper.Path();
-    //     paths[id].add(event.point);
-    
     var obj = {
       color: strokeColor,
       x: event.point.x,
@@ -237,9 +228,12 @@
       senderId: userId
     };
     socket.send(JSON.stringify(obj)); // send message to server
-//     path.strokeColor = strokeColor;
-//     path.add(event.point);
   }
+  
+  // VARIANT: Disable mouse events by default until brush button is clicked.
+  // That way, users can zoom in when not drawing.
+    paper.tool.off('mousedrag', tool.onMouseDrag);
+    paper.tool.off('mousedown', tool.onMouseDown);
 
 
   // create new websocket connecting to server 
@@ -273,12 +267,6 @@
 //         alert('Sticky received: ' + messageContent);
         var stickyId = "sticky-note".concat(id);
         var stickyHeaderId = stickyId.concat("-header");
-        /* https://stackoverflow.com/questions/595808/is-it-possible-to-append-to-innerhtml-without-destroying-descendants-event-list
-             The code below only adds one child to the 'stickies' div and replaces that child every time a new one is added.
-
-             document.getElementById('stickies').innerHTML = "<div class='sticky-note' id='" + stickyId + "'>" 
-               + "<div class='sticky-note-header' id='" + stickyHeaderId + "'>Sticky Note</div>"
-               + messageContent + "</div>"; */  
 
         // Make the sticky note.
         var stickies = document.getElementById('stickies'); // container for sticky notes
@@ -335,7 +323,6 @@
     socket.send(JSON.stringify(obj)); 
     // when message is received, a sticky will be created on all screens
     // including the current one (websocket will send message to all connections, including the sender)
-//     alert("Sticky created!");
     id = randomId(); 
     /* Sticky notes are (1) created and (2) 'sent' to the main large display that shows every user's annotations and sticky notes. 
     Sticky notes are the same as the user's strokeColor to distinguish which notes belong to whom. 
@@ -361,11 +348,39 @@
       popup = true;
     }
   }
+  
+  // VARIANT: Enable a marker button so users can zoom in on their mobile device when not marking the screen.
+  var marker = false;
+  function enableOrDisableMarker() {
+    if (marker) {
+      // TODO: disable mouse events 
+      paper.tool.off('mousedrag', tool.onMouseDrag);
+      paper.tool.off('mousedown', tool.onMouseDown);
+      marker = false;
+      document.getElementById("marker-button").style.color = 'white';
+    } else {
+      // TODO: re-enable mouse events 
+      paper.tool.on('mousedrag', tool.onMouseDrag);
+      paper.tool.on('mousedown', tool.onMouseDown);
+      marker = true;
+      document.getElementById("marker-button").style.color = strokeColor;
+    }
+  }
 
   // notify console if socket closes unexpectedly
   socket.onclose = function(e) {
     console.error('Chat socket closed unexpectedly');
   };
+  
+  
+//   // ZOOM
+//   var pinchHammer = new Hammer(document.getElementById('myCanvas'));
+//   pinchHammer.get('pinch').set({ enable: true }); // disabled by default
+//   pinchHammer.on('pinch', function(e) {
+//     if (e.scale >= 1) {
+//       paper.view.zoom = e.scale;
+//     }
+//  });
   
   
   
