@@ -26,6 +26,7 @@
         z-index: 5;
     }
     
+    /* NAV BAR */
     .nav {
         background-image: linear-gradient(to bottom left, rgba(0, 0, 0, 1), rgba(0, 0, 0, .8));
         width: 100%;
@@ -43,6 +44,7 @@
         color: white;
       }
     
+     /* STICKY NOTE + STICKY NOTE ADDER */
     .sticky-create,
     .sticky-note {
       position: absolute;
@@ -54,6 +56,10 @@
       background-color: yellow; /* default color, will be replaced by strokeColor */
       border-radius: 4px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, .4);
+    }
+    
+    .sticky-create {
+      opacity: 0;
     }
     
     .sticky-note {
@@ -71,23 +77,38 @@
       font-size: 22px;
     }
     
-    .sticky-send {
-      color: black;
-      font-size: 40px;
+    /* ICON BUTTONS */
+    #sticky-send {
       position: absolute;
       bottom: 35px;
-      right: 40px;
+      right: 45px;
+      font-size: 40px;
+      transform: rotate(20deg);
+    }
+        
+    #sticky-send:hover {
+      transform: rotate(20deg) scale(1.2);
     }
     
-    .sticky-send:hover {
-      font-size: 50px;
+    #sticky-button {
+      font-size: 60px;
+      position: absolute;
+      right: 280px;
+      top: 170px; /* TEMPORARY. TODO: ADD BUTTON TO NAVBAR */
     }
+    /* TODO: When hover, change color. */
+   
+/*     #sticky-button:hover {
+      transform: scale(1.2);
+    } */
     
+    /* TEXTBOX */
     textarea {
       height: 200px;
       width: 300px;
       padding: 20px;
       font-size: 20px;
+      border: none;
     }
     
     textarea:focus {
@@ -113,10 +134,11 @@
   
   <div class="sticky-create" id="sticky-create">
     <div id="sticky-create-header" class="sticky-create-header">Add Sticky Note</div>
-    <ion-icon class="sticky-send" name="send" onclick="createStickyAndSend()"></ion-icon> <!-- Send textarea val to websocket -->
+    <ion-icon id="sticky-send" name="ios-send" onclick="createStickyAndSend()"></ion-icon> <!-- Send textarea val to websocket -->
     <textarea id="textarea" name="note" placeholder="Note"></textarea>
   </div>
   <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
+  <ion-icon id="sticky-button" name="list-box" onclick="hideOrExpand()"></ion-icon>
 </body>
   
 <script>
@@ -142,13 +164,12 @@
   $('.sticky-create-header').css('background-color', strokeColor);
   // https://stackoverflow.com/questions/21051440/how-to-define-the-css-hover-state-in-a-jquery-selector
   // https://forum.jquery.com/topic/what-is-the-opposite-of-hover
-  $('.sticky-send').mouseenter(function() {
+  $('#sticky-send').mouseenter(function() {
     $(this).css('color', strokeColor)
   });
-  $('.sticky-send').mouseleave(function() {
+  $('#sticky-send').mouseleave(function() {
     $(this).css('color', 'black')
   });
-  
   
   tool.onMouseDown = function(event) {
     id = randomId();
@@ -256,6 +277,7 @@
   // Grabs message contents from sticky note textarea to send to websocket 
   function createStickyAndSend() {
     var messageContent = $('textarea').val();
+    document.getElementById('textarea').value = '';
     // TODO: Clear textarea and hide popup
       var obj = {
         color: strokeColor,
@@ -269,7 +291,7 @@
     socket.send(JSON.stringify(obj)); 
     // when message is received, a sticky will be created on all screens
     // including the current one (websocket will send message to all connections, including the sender)
-    alert("Sticky created!");
+//     alert("Sticky created!");
     id = randomId(); 
     /* Sticky notes are (1) created and (2) 'sent' to the main large display that shows every user's annotations and sticky notes. 
     Sticky notes are the same as the user's strokeColor to distinguish which notes belong to whom. 
@@ -277,6 +299,21 @@
     Each sticky note needs its own ID for the drag function to work (i.e. to make them draggable).
     The ID is taken from the user's current path ID. (This also means users can create and send multiple sticky notes.)
     A new ID is created after every sticky note so the user can create/send consecutive sticky notes. */
+  }
+  
+  /* Clicking the icon either hides or shows the "Add Sticky Note" popup. */
+  var popup = false;
+  function hideOrExpand() {
+    // check if active, else make active and change color
+    if (popup) {
+      document.getElementById("sticky-create").style.opacity = 0;
+      document.getElementById("sticky-button").style.color = 'black';
+      popup = false;
+    } else {
+      document.getElementById("sticky-create").style.opacity = 1;
+      document.getElementById("sticky-button").style.color = strokeColor;
+      popup = true;
+    }
   }
 
   // notify console if socket closes unexpectedly
