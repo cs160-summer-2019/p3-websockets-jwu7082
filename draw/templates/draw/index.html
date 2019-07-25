@@ -39,14 +39,15 @@
         position: fixed; 
       }
       
-      .nav li {
+    .nav li {
         color: white;
       }
     
-    .sticky-create {
+    .sticky-create,
+    .sticky-note {
       position: absolute;
       top: 50%;
-        left: 50%;
+      left: 50%;
       transform: translate(-50%, -50%);
       z-index: 10;
       padding: 20px 30px 20px 30px;
@@ -55,7 +56,12 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, .4);
     }
     
-    .sticky-create-header {
+    .sticky-note {
+      top: 30%;
+      left: 30%;
+    }
+    .sticky-create-header,
+    .sticky-note-header {
       background-color: yellow; /* default color, will be replaced by strokeColor */
       cursor: move;
       padding: 0 20px;
@@ -74,10 +80,8 @@
     }
     
     .sticky-send:hover {
-      color: red; /* TODO: change color to sticky note color? */
       font-size: 50px;
     }
-    
     
     textarea {
       height: 200px;
@@ -104,14 +108,6 @@
   <div id="stickies">
     <!-- For individual users, this is where stickies will be added. 
          For the large display, all stickies from all users will be added. -->
-    
-    <div class="sticky-note" id="sticky-note23424">
-      <div class="sticky-note-header" id="sticky-note23424-header">
-      </div>
-      tmp sticky
-    </div>
-    <!-- change bg color of sticky note and header -->
-    
   </div>
  
   
@@ -194,8 +190,7 @@
 
 
   // create new websocket connecting to server 
-  var socket = new WebSocket(
-    'wss://p3-websockets-jwu7082-jwu7082387298.codeanyapp.com/ws/draw');
+  var socket = new WebSocket('wss://p3-websockets-jwu7082-jwu7082387298.codeanyapp.com/ws/draw');
   
   
   // receive message from server
@@ -203,52 +198,57 @@
     var currId = id; 
     
     // Take care of message. Message will EITHER contain sticky note contents OR a new point to add to a specified path. 
-        var obj = JSON.parse(receivedMessage.data);
-        var x = obj.x,
-            y = obj.y,
-            color = obj.color,
-            id = obj.id.toString(),
-            newPath = obj.newPath,
-            message = obj.message,
-            messageContent = obj.messageContent;
+    var obj = JSON.parse(receivedMessage.data);
+    var x = obj.x,
+        y = obj.y,
+        color = obj.color,
+        id = obj.id.toString(),
+        newPath = obj.newPath,
+        message = obj.message,
+        messageContent = obj.messageContent;
     
-      // if receiving a sticky note message, as indicated by the 'message' boolean variable,
-      // create a sticky containing the messageContent with the specified color and ID
-      if (message) {
-        alert('Sticky received: ' + messageContent);
+    // if receiving a sticky note message, as indicated by the 'message' boolean variable,
+    // create a sticky containing the messageContent with the specified color and ID
+    if (message) {
+//         alert('Sticky received: ' + messageContent);
         var stickyId = "sticky-note".concat(id);
         var stickyHeaderId = stickyId.concat("-header");
-        
-        
         /* https://stackoverflow.com/questions/595808/is-it-possible-to-append-to-innerhtml-without-destroying-descendants-event-list
-         * The code below only adds one child to the 'stickies' div and replaces that child every time a new one is added.
-         * 
-         * document.getElementById('stickies').innerHTML = "<div class='sticky-note' id='" + stickyId + "'>" 
-         *    + "<div class='sticky-note-header' id='" + stickyHeaderId + "'>Sticky Note</div>"
-         *    + messageContent + "</div>"; 
-         */
+             The code below only adds one child to the 'stickies' div and replaces that child every time a new one is added.
+
+             document.getElementById('stickies').innerHTML = "<div class='sticky-note' id='" + stickyId + "'>" 
+               + "<div class='sticky-note-header' id='" + stickyHeaderId + "'>Sticky Note</div>"
+               + messageContent + "</div>"; */  
+
+        // Make the sticky note.
         var stickies = document.getElementById('stickies'); // container for sticky notes
         var sticky = document.createElement('div');
-        sticky.innerHTML = "<div class='sticky-note' id='" + stickyId + "'>" + "<div class='sticky-note-header' id='" + stickyHeaderId + "'>Sticky Note</div>";
+        sticky.innerHTML = "<div class='sticky-note' id='" + stickyId + "'>" 
+          + "<div class='sticky-note-header' id='" + stickyHeaderId + "'>Sticky Note</div>" 
+          + messageContent + "</div>";
         while (sticky.firstChild) {
           stickies.append(sticky.firstChild);
         }
-        
-        dragElement(stickyId); // make new sticky element draggable
+
+        // Color the sticky note.
+        $('#' + stickyId).css('background-color', color);
+        $('#' + stickyHeaderId).css('background-color', color);
+
+        // Make sticky note draggable.
+        dragElement(document.getElementById(stickyId));
         return;
-      }
+     }
     
-      // Else, if adding a new path or point to a path:
-        if (!(id in paths) || (newPath)) {
-          paths[id] = new paper.Path();
-        }
-        paths[id].add(new paper.Point(x, y)); 
-        paths[id].strokeColor = color;
-        paths[id].strokeWidth = 4;
+     // Else, if adding a new path or point to a path:
+     if (!(id in paths) || (newPath)) {
+         paths[id] = new paper.Path();
+     }
+     paths[id].add(new paper.Point(x, y)); 
+     paths[id].strokeColor = color;
+     paths[id].strokeWidth = 4;
     
-    // Return to original path before message came
-    path = paths[currId];
-    
+     // Return to original path before message came
+     path = paths[currId];
   };
   
   
