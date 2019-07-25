@@ -94,13 +94,8 @@
       font-size: 60px;
       position: absolute;
       right: 280px;
-      top: 170px; /* TEMPORARY. TODO: ADD BUTTON TO NAVBAR */
+      top: 170px;
     }
-    /* TODO: When hover, change color. */
-   
-/*     #sticky-button:hover {
-      transform: scale(1.2);
-    } */
     
     /* TEXTBOX */
     textarea {
@@ -227,6 +222,13 @@
         newPath = obj.newPath,
         message = obj.message,
         messageContent = obj.messageContent;
+    
+    
+    if (url.indexOf("?size=small") >= 0) {
+      // TODO: if small screen, check ID before proceeding to add sticky note/path. 
+      // Might need a map of users to IDs? ... 
+      // Users should only view their own content, so need to filter by ID.
+    }
     
     // if receiving a sticky note message, as indicated by the 'message' boolean variable,
     // create a sticky containing the messageContent with the specified color and ID
