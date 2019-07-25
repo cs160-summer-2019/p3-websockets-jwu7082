@@ -99,9 +99,12 @@
   <div class="nav">
     <li>edit</li>
     <li>edit2</li>
+    <!-- TODO: Style navbar -->
   </div>
+  
   <div class="stickies">
-    <!-- This is where stickies from individual screens will be added. This div is only used on the large display. -->
+    <!-- For individual users, this is where stickies will be added. 
+         For the large display, all stickies from all users will be added. -->
   </div>
  
   
@@ -122,7 +125,7 @@
   // getting the URL (you may want to use for Exercise 3)
   var url = window.location.href;
 //   if (url.indexOf("?size=small") < 0) {
-//     // TODO
+// TODO
 //   }
 
   path = new paper.Path();
@@ -132,14 +135,20 @@
   $('.sticky-create').css('background-color', strokeColor);
   $('.sticky-create-header').css('background-color', strokeColor);
   paths = {};
-  var id = randomNumber();
+  var id = randomId();
   
   
   tool.onMouseDown = function(event) {
-    id = randomNumber();
-    alert(id); // TODO: Remove
-    paths[id] = new paper.Path();
-    paths[id].add(event.point);
+    id = randomId();
+    // alert(id);
+    
+    /* Unneeded code. See "socket.onmessage" function. 
+       The "socket.onmessage" function creates paths/adds points to paths on the message receiver's screen. 
+       However, ALL connections to the websocket, INCLUDING the sender, receive the sent message.
+       The code below thus indicates we are double-creating the path on the same screen. */
+    //     paths[id] = new paper.Path();
+    //     paths[id].add(event.point);
+    
     var obj = {
       color: strokeColor,
       x: event.point.x,
@@ -163,8 +172,8 @@
       messageContent: ''
     };
     socket.send(JSON.stringify(obj)); // send message to server
-    path.strokeColor = strokeColor;
-    path.add(event.point);
+//     path.strokeColor = strokeColor;
+//     path.add(event.point);
   }
 
 
@@ -186,15 +195,19 @@
             newPath = obj.newPath,
             message = obj.message,
             messageContent = obj.messageContent;
+    
       // if websocket message is from sticky note (not path), as indicated by the 'message' boolean variable,
       // create a sticky containing the messageContent in the specified color and ID
-      // TODO: use innerhtml 
       if (message) {
         var stickyId = "sticky-note".concat(id);
         var stickyHeaderId = stickyId.concat("-header");
-        // TODO: reconstruct sticky note here with the specified ids and messageContent. Use HTML. Add below:
-        // document.getElementById(stickies).innerHTML = 
+       
+        // TODO: construct sticky note here with the specified ids and messageContent. Use HTML. Add below:
+        // document.getElementById(stickies).innerHTML = "<div class='sticky-note' id='" + stickyId + "' + "> </div>"
+        
+        
         dragElement(stickyId);
+        alert('Sticky received: ' + messageContent); // TODO remove 
         return;
       }
       // Else, if adding a new path or point to a path:
@@ -226,8 +239,10 @@
         messageContent: messageContent
       };
     socket.send(JSON.stringify(obj)); 
-    alert("Sticky created!" + id); // TODO Remove ID.
-    id = randomNumber(); 
+    // when message is received, a sticky will be created on all screens
+    // including the current one (websocket will send message to all connections, including the sender)
+    alert("Sticky created!");
+    id = randomId(); 
     /* Sticky notes are (1) created and (2) 'sent' to the main large display that shows every user's annotations and sticky notes. 
     Sticky notes are the same as the user's strokeColor to distinguish which notes belong to whom. 
     
@@ -248,15 +263,11 @@
   }
   
   // https://stackoverflow.com/questions/6860853/generate-random-string-for-div-id
-  function randomNumber() {
+  function randomId() {
     var S4 = function() {
        return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
     };
-    var num = (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
-    while (num in paths) { // ID already in use
-      num = (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
-    }
-    return num;
+    return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
   }
   
   
