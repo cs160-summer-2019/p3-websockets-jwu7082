@@ -294,9 +294,12 @@
         $('#' + stickyHeaderId).css('background-color', color);
 
         // Make sticky note draggable.
-        dragElement(document.getElementById(stickyId));
+      if (url.indexOf("?size=small") >= 0) {
         dragElementMobile(document.getElementById(stickyId), document.getElementById(stickyId));
         dragElementMobile(document.getElementById(stickyHeaderId), document.getElementById(stickyId));
+      } else {
+        dragElement(document.getElementById(stickyId));
+      }
         return;
      }
     
@@ -383,9 +386,12 @@
   // DRAG
   // https://www.w3schools.com/howto/howto_js_draggable.asp
   // Make the DIV element draggable:
-  dragElement(document.getElementById("sticky-create"));
-  dragElementMobile(document.getElementById("sticky-create"), document.getElementById("sticky-create"));
-  dragElementMobile(document.getElementById("sticky-create-header"), document.getElementById("sticky-create"));
+  if (url.indexOf("?size=small") >= 0) {
+    dragElementMobile(document.getElementById("sticky-create"), document.getElementById("sticky-create"));
+    dragElementMobile(document.getElementById("sticky-create-header"), document.getElementById("sticky-create"));
+  } else {
+    dragElement(document.getElementById("sticky-create"));
+  }
   
   function dragElement(elmnt) {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
