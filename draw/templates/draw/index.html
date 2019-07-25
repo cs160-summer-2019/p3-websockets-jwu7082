@@ -135,14 +135,23 @@
 // TODO
 //   }
 
-  path = new paper.Path();
-  path.strokeWidth = 4;
+  var id = randomId();
   var strokeColor = randomColor();
+  paths = {};
+  path = new paper.Path();
   path.strokeColor = strokeColor;
+  path.strokeWidth = 4;
+  
   $('.sticky-create').css('background-color', strokeColor);
   $('.sticky-create-header').css('background-color', strokeColor);
-  paths = {};
-  var id = randomId();
+  // https://stackoverflow.com/questions/21051440/how-to-define-the-css-hover-state-in-a-jquery-selector
+  // https://forum.jquery.com/topic/what-is-the-opposite-of-hover
+  $('.sticky-send').mouseenter(function() {
+    $(this).css('color', strokeColor)
+  });
+  $('.sticky-send').mouseleave(function() {
+    $(this).css('color', 'black')
+  });
   
   
   tool.onMouseDown = function(event) {
@@ -218,7 +227,7 @@
          *    + "<div class='sticky-note-header' id='" + stickyHeaderId + "'>Sticky Note</div>"
          *    + messageContent + "</div>"; 
          */
-        var stickies = document.getElementById('stickies');
+        var stickies = document.getElementById('stickies'); // container for sticky notes
         var sticky = document.createElement('div');
         sticky.innerHTML = "<div class='sticky-note' id='" + stickyId + "'>" + "<div class='sticky-note-header' id='" + stickyHeaderId + "'>Sticky Note</div>";
         while (sticky.firstChild) {
