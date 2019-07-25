@@ -53,22 +53,43 @@
       padding: 20px 30px 20px 30px;
       background-color: skyblue;
       border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, .4);
     }
     
-    #sticky-note-header {
+    .sticky-note-header {
       background-color: skyblue;
       cursor: move;
       padding: 0 20px;
       margin-bottom: 20px;
       padding-left: 5px;
       font-weight: 600;
+      font-size: 22px;
+    }
+    
+    .note-send {
+      color: black;
+      font-size: 40px;
+      position: absolute;
+      bottom: 35px;
+      right: 40px;
+    }
+    
+    .note-send:hover {
+      color: red; /* TODO: change color to sticky note color? */
+      font-size: 50px;
     }
     
     textarea {
       height: 200px;
       width: 300px;
       padding: 20px;
+      font-size: 20px;
     }
+    
+    textarea:focus {
+      outline: none;
+    }
+    
   </style>
 
 </head>
@@ -80,11 +101,15 @@
     <li>edit</li>
     <li>edit2</li>
   </div>
+  
   <div class="sticky-note" id="sticky-note">
-    <div id="sticky-note-header">Sticky Note</div>
-     <textarea name="note" placeholder="Note"></textarea>
+    <div id="sticky-note-header" class="sticky-note-header">Sticky Note</div>
+    <ion-icon class="note-send" name="send" onclick="alert($('textarea').val())"></ion-icon> <!-- Send textarea val to websocket -->
+    <textarea id="textarea" name="note" placeholder="Note"></textarea>
   </div>
+  <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
 </body>
+  
 <script>
   // setting up the canvas and one paper tool
   var canvas = document.getElementById('myCanvas');
