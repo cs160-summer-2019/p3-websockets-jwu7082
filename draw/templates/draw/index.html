@@ -13,7 +13,7 @@
 
   <style type="text/css">
     canvas {
-      border: 2px solid skyblue;
+      border: 2px solid black;
 /*       width: 1063px; */
       width: 850px;
 /*       height: 2048px; */
@@ -21,13 +21,14 @@
       display: block;
       margin: 10% auto 0 auto;
       background-image: url("{%static 'draw/images/img2.jpg'%}");
+      margin-bottom: 10%;
     }
     
     #myCanvas { 
         z-index: 5;
     }
     
-    .sticky-nav {
+    .nav {
         background-image: linear-gradient(to bottom left, rgba(0, 0, 0, 1), rgba(0, 0, 0, .8));
         width: 100%;
         height: 10%;
@@ -40,24 +41,24 @@
         position: fixed; 
       }
       
-      .sticky-nav li {
+      .nav li {
         color: white;
       }
     
-    .sticky-note {
+    .sticky-create {
       position: absolute;
       top: 50%;
         left: 50%;
       transform: translate(-50%, -50%);
       z-index: 10;
       padding: 20px 30px 20px 30px;
-      background-color: skyblue;
+      background-color: yellow; /* default color, will be replaced by strokeColor */
       border-radius: 4px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, .4);
     }
     
-    .sticky-note-header {
-      background-color: skyblue;
+    .sticky-create-header {
+      background-color: yellow; /* default color, will be replaced by strokeColor */
       cursor: move;
       padding: 0 20px;
       margin-bottom: 20px;
@@ -66,7 +67,7 @@
       font-size: 22px;
     }
     
-    .note-send {
+    .sticky-send {
       color: black;
       font-size: 40px;
       position: absolute;
@@ -74,7 +75,7 @@
       right: 40px;
     }
     
-    .note-send:hover {
+    .sticky-send:hover {
       color: red; /* TODO: change color to sticky note color? */
       font-size: 50px;
     }
@@ -89,22 +90,24 @@
     textarea:focus {
       outline: none;
     }
-    
   </style>
-
 </head>
 
 <body>
   <!-- You may change the dimensions of this canvas -->
   <canvas id="myCanvas"></canvas>
-  <div class="sticky-nav">
+  <div class="nav">
     <li>edit</li>
     <li>edit2</li>
   </div>
+  <div class="stickies">
+    <!-- This is where stickies from individual screens will be added. This div is only used on the large display. -->
+  </div>
+ 
   
-  <div class="sticky-note" id="sticky-note">
-    <div id="sticky-note-header" class="sticky-note-header">Sticky Note</div>
-    <ion-icon class="note-send" name="send" onclick="alert($('textarea').val())"></ion-icon> <!-- Send textarea val to websocket -->
+  <div class="sticky-create" id="sticky-create">
+    <div id="sticky-create-header" class="sticky-create-header">Sticky Note</div>
+    <ion-icon class="sticky-send" name="send" onclick="createStickyAndSend()"></ion-icon> <!-- Send textarea val to websocket -->
     <textarea id="textarea" name="note" placeholder="Note"></textarea>
   </div>
   <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
@@ -118,27 +121,33 @@
 
   // getting the URL (you may want to use for Exercise 3)
   var url = window.location.href;
-  if (url.indexOf("?size=small") < 0) {
-    
-  }
+//   if (url.indexOf("?size=small") < 0) {
+//     // TODO
+//   }
 
   path = new paper.Path();
   path.strokeWidth = 4;
   var strokeColor = randomColor();
   path.strokeColor = strokeColor;
-  idMap = {};
+  $('.sticky-create').css('background-color', strokeColor);
+  $('.sticky-create-header').css('background-color', strokeColor);
+  paths = {};
   var id = randomNumber();
   
   
   tool.onMouseDown = function(event) {
     id = randomNumber();
-    idMap[id] = new paper.Path();
-    idMap[id].add(event.point);
+    alert(id); // TODO: Remove
+    paths[id] = new paper.Path();
+    paths[id].add(event.point);
     var obj = {
+      color: strokeColor,
       x: event.point.x,
       y: event.point.y,
       id: id,
-      newPath: true
+      newPath: true,
+      message: false,
+      messageContent: ''
     }
     socket.send(JSON.stringify(obj));
   }
@@ -149,7 +158,9 @@
       x: event.point.x,
       y: event.point.y,
       id: id,
-      newPath: false
+      newPath: false,
+      message: false,
+      messageContent: ''
     };
     socket.send(JSON.stringify(obj)); // send message to server
     path.strokeColor = strokeColor;
@@ -160,47 +171,100 @@
   // create new websocket connecting to server 
   var socket = new WebSocket(
     'wss://p3-websockets-jwu7082-jwu7082387298.codeanyapp.com/ws/draw');
+  
+  
   // receive message from server
   socket.onmessage = function(receivedMessage) {
     var currId = id; 
+    
+    // Take care of message 
         var obj = JSON.parse(receivedMessage.data);
         var x = obj.x,
             y = obj.y,
             color = obj.color,
             id = obj.id.toString(),
-            newPath = obj.newPath;
-        if (!(id in idMap) || (newPath)) {
-          idMap[id] = new paper.Path();
+            newPath = obj.newPath,
+            message = obj.message,
+            messageContent = obj.messageContent;
+      // if websocket message is from sticky note (not path), as indicated by the 'message' boolean variable,
+      // create a sticky containing the messageContent in the specified color and ID
+      // TODO: use innerhtml 
+      if (message) {
+        var stickyId = "sticky-note".concat(id);
+        var stickyHeaderId = stickyId.concat("-header");
+        // TODO: reconstruct sticky note here with the specified ids and messageContent. Use HTML. Add below:
+        // document.getElementById(stickies).innerHTML = 
+        dragElement(stickyId);
+        return;
+      }
+      // Else, if adding a new path or point to a path:
+        if (!(id in paths) || (newPath)) {
+          paths[id] = new paper.Path();
         }
-        idMap[id].add(new paper.Point(x, y)); 
-        idMap[id].strokeColor = color;
-        idMap[id].strokeWidth = 4;
+        paths[id].add(new paper.Point(x, y)); 
+        paths[id].strokeColor = color;
+        paths[id].strokeWidth = 4;
     
-    path = idMap[currId];
+    // Return to original path before message came
+    path = paths[currId];
     
   };
+  
+  
+  // Creates a noneditable version of the sticky note
+  // Grabs message contents from sticky note textarea to send to websocket 
+  function createStickyAndSend() {
+    var messageContent = $('textarea').val();
+    // TODO: Clear textarea and hide popup
+      var obj = {
+        color: strokeColor,
+        x: 0,
+        y: 0,
+        id: id,
+        newPath: false,
+        message: true,
+        messageContent: messageContent
+      };
+    socket.send(JSON.stringify(obj)); 
+    alert("Sticky created!" + id); // TODO Remove ID.
+    id = randomNumber(); 
+    /* Sticky notes are (1) created and (2) 'sent' to the main large display that shows every user's annotations and sticky notes. 
+    Sticky notes are the same as the user's strokeColor to distinguish which notes belong to whom. 
+    
+    Each sticky note needs its own ID for the drag function to work (i.e. to make them draggable).
+    The ID is taken from the user's current path ID. (This also means users can create and send multiple sticky notes.)
+    A new ID is created after every sticky note so the user can create/send consecutive sticky notes. */
+  }
 
   // notify console if socket closes unexpectedly
   socket.onclose = function(e) {
     console.error('Chat socket closed unexpectedly');
   };
   
+  
   // https://stackoverflow.com/questions/1484506/random-color-generator
   function randomColor() {
     return '#'+Math.random().toString(16).substr(-6);
   }
-  // http://www.javascriptkit.com/javatutors/randomnum.shtml
-  function randomNumber() {
-    return Math.floor(Math.random()*11);
-  }
   
+  // https://stackoverflow.com/questions/6860853/generate-random-string-for-div-id
+  function randomNumber() {
+    var S4 = function() {
+       return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+    };
+    var num = (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+    while (num in paths) { // ID already in use
+      num = (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+    }
+    return num;
+  }
   
   
   // DRAG
   // https://www.w3schools.com/howto/howto_js_draggable.asp
   // Make the DIV element draggable:
-  dragElement(document.getElementById("sticky-note"));
-
+  dragElement(document.getElementById("sticky-create"));
+  
   function dragElement(elmnt) {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     if (document.getElementById(elmnt.id + "-header")) {
