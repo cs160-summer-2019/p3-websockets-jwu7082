@@ -378,16 +378,28 @@
   // LONG PRESS
   var pressHammer = new Hammer(document.getElementById('myCanvas'));
   pressHammer.on('press', function() {
+    var supportsVibrate = "vibrate" in navigator;
+    if (supportsVibrate) {
+      navigator.vibrate(500);
+    }
     enableOrDisableMarker();
   });
-//   // ZOOM
+//  ZOOM
 //   var pinchHammer = new Hammer(document.getElementById('myCanvas'));
 //   pinchHammer.get('pinch').set({ enable: true }); // disabled by default
 //   pinchHammer.on('pinch', function(e) {
 //     if (e.scale >= 1) {
-//       $('.myCanvas').css('transform', 'scale(' + e.scale + ')'); 
+//       $('#myCanvas').css('transform', 'scale(' + e.scale + ')'); 
 //     }
 //   });
+  
+//   var panHammer = new Hammer(document.getElementById('myCanvas'));
+//            panHammer.get('pan').set({ direction: Hammer.DIRECTION_ALL, threshold: 0, pointers: 1 });
+//            panHammer.on('pan', function(e) {
+//              if (e.scale > 1) {
+//               $('#myCanvas').css('transform', 'translate(' + e.deltaX + 'px,' + e.deltaY + 'px)');
+//              }
+//            });
   
   
   /* ====================================================================== */
